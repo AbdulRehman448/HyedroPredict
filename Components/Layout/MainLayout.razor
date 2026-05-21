@@ -1,0 +1,116 @@
+﻿@inherits LayoutComponentBase
+@inject HydroPredict.Services.Implementations.UiStateService UiState
+
+<div class="@(UiState.IsDarkMode ? "bg-dark text-white" : "bg-light text-dark") min-vh-100 d-flex flex-column transition-all">
+
+    <header class="navbar navbar-expand-lg border-bottom sticky-top px-4 py-2.5 @(UiState.IsDarkMode ? "navbar-dark bg-secondary shadow" : "navbar-light bg-white shadow-sm")">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-primary d-flex align-items-center gap-2 m-0" href="/">
+                <img src="logo.png" alt="HydroPredict Fleet Logo" style="height: 42px; width: auto; object-fit: contain; max-width: 120px;" />
+                <span class="fs-5 tracking-tight">@UiState.T("brand")</span>
+            </a>
+
+            <div class="d-flex align-items-center gap-3 ms-auto">
+                <a href="/" class="nav-link small fw-semibold text-secondary hover-primary">@UiState.T("home")</a>
+                <a href="/about" class="nav-link small fw-semibold text-secondary hover-primary me-2">@UiState.T("about")</a>
+
+                <a href="/login" class="btn btn-sm btn-outline-primary fw-bold rounded-3 px-3 py-1.5">Sign In</a>
+                <a href="/register" class="btn btn-sm btn-primary fw-bold rounded-3 px-3 py-1.5">Get Started</a>
+
+                <div class="vr mx-1 text-muted opacity-25" style="height: 20px;"></div>
+
+                <select class="form-select form-select-sm border-0 bg-opacity-10 bg-primary text-primary fw-bold rounded-3 py-1" style="width: 95px; cursor: pointer;"
+                        value="@UiState.CurrentLanguage" @onchange="(e) => UiState.SetLanguage(e.Value?.ToString() ?? string.Empty)">
+                    <option value="en">English</option>
+                    <option value="ur">اردو</option>
+                </select>
+
+                <button class="btn btn-sm rounded-circle border-0 p-1.5 @(UiState.IsDarkMode ? "btn-warning" : "btn-outline-dark")" @onclick="UiState.ToggleTheme" style="width: 34px; height: 34px;">
+                    <i class="bi @(UiState.IsDarkMode ? "bi-sun-fill" : "bi-moon-stars-fill")"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow-1 container my-4">
+        @Body
+    </main>
+
+    <footer class="border-top mt-auto py-5 @(UiState.IsDarkMode ? "bg-secondary text-light" : "bg-white text-muted")">
+        <div class="container">
+            <div class="row g-4">
+
+                <div class="col-12 col-md-4 text-center text-md-start">
+                    <div class="d-flex align-items-center justify-content-center justify-content-md-start gap-2 mb-3">
+                        <img src="logo.png" alt="Logo" style="height: 34px; width: auto; object-fit: contain;" />
+                        <h5 class="fw-bold text-primary m-0">@UiState.T("brand") Center</h5>
+                    </div>
+                    <p class="small mb-3 text-secondary" style="line-height: 1.6;">
+                        An intelligence-driven utility infrastructure designed specifically to streamline and automate residential, commercial, and emergency water supply demands within the Kharian region.
+                    </p>
+                    <div class="d-flex justify-content-center justify-content-md-start gap-3 text-primary fs-5">
+                        <i class="bi bi-shield-check" title="Secure Database Monitoring"></i>
+                        <i class="bi bi-speedometer2" title="Real-time Dispatch Tracking"></i>
+                        <i class="bi bi-lightning-charge" title="Automated Tariff Generation"></i>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-4 text-center text-md-start ps-md-5">
+                    <h6 class="fw-bold text-dark mb-3">Helpdesk & Support</h6>
+                    <ul class="list-unstyled small p-0 m-0 text-secondary">
+                        <li class="mb-2"><i class="bi bi-geo-alt-fill text-danger me-2"></i>Kharian Cantonment, Punjab</li>
+                        <li class="mb-2"><i class="bi bi-clock-history me-2"></i>Operations: 24/7 Support</li>
+                        <li class="mb-3">
+                            <i class="bi bi-envelope-at-fill text-primary me-2"></i>
+                            <a href="mailto:abdulrehman.tp.786@gmail.com?subject=HydroPredict%20Support%20Request"
+                               class="text-decoration-none fw-semibold text-primary hover-underline">
+                                abdulrehman.tp.786@gmail.com
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="col-12 col-md-4">
+                    <div class="rounded-4 overflow-hidden border shadow-sm" style="height: 160px;">
+                        <iframe frameborder="0" scrolling="no" marginheight="0" marginwidth="0"
+                                src="https://www.openstreetmap.org/export/embed.html?bbox=73.8400%2C32.7900%2C73.8900%2C32.8300&amp;layer=mapnik&amp;marker=32.8110%2C73.8650"
+                                style="border: 0; width: 100%; height: 100%;">
+                        </iframe>
+                    </div>
+                    <div class="text-end mt-1.5" style="font-size: 11px;">
+                        <span class="text-secondary"><i class="bi bi-geo-alt-fill text-danger"></i> Global Logistics Distribution Grid, Kharian, Pakistan</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-top mt-4 pt-4 text-center">
+                <p class="m-0 fw-medium text-dark text-opacity-75 fs-6" style="letter-spacing: 0.3px;">
+                    &copy; @DateTime.Now.Year HydroPredict Portal. All Rights Reserved. Powered by SQLite Relational Processing Engines.
+                </p>
+            </div>
+        </div>
+    </footer>
+</div>
+
+<style>
+    .transition-all {
+        transition: all 0.22s ease-in-out;
+    }
+
+    .hover-primary:hover {
+        color: var(--bs-primary) !important;
+    }
+
+    .hover-underline:hover {
+        text-decoration: underline !important;
+    }
+
+    .fs-6 {
+        font-size: 0.95rem !important;
+    }
+</style>
+
+@code {
+    protected override void OnInitialized() => UiState.OnChange += StateHasChanged;
+    public void Dispose() => UiState.OnChange -= StateHasChanged;
+}

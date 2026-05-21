@@ -1,0 +1,194 @@
+﻿@page "/about"
+@inject HydroPredict.Services.Implementations.UiStateService UiState
+@implements IDisposable
+
+<div class="page-wrapper d-flex flex-column justify-content-center align-items-center min-vh-100 py-5 position-relative overflow-hidden @(UiState.IsDarkMode ? "bg-dark text-white" : "bg-light text-dark")">
+
+    <div class="abstract-bg-overlay position-absolute top-0 start-0 w-100 h-100"
+         style="background-image: linear-gradient(to bottom, @(UiState.IsDarkMode ? "rgba(33,37,41,0.88)" : "rgba(248,249,250,0.85)"), @(UiState.IsDarkMode ? "rgba(33,37,41,0.92)" : "rgba(248,249,250,0.90)")), url('https://images.unsplash.com/photo-1541888946425-d81bb19240f5?auto=format&fit=crop&w=1920&q=80');
+        background-size: cover;
+        background-position: center;
+        filter: contrast(1.05);
+        z-index: 0;">
+    </div>
+
+    <div class="container position-relative z-1 py-4">
+        <div class="row align-items-center justify-content-center g-5 m-0">
+            <div class="col-12 col-md-10 text-center card border-0 p-4 p-md-5 shadow-lg rounded-4 transition-all @(UiState.IsDarkMode ? "bg-secondary text-white border-secondary" : "bg-white text-dark")" style="backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid @(UiState.IsDarkMode ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.05)") !important;">
+
+                <div class="mb-4 position-relative d-inline-block mx-auto water-abstract-asset shadow-sm">
+                    <div class="water-core-wave bg-primary bg-gradient rounded-circle d-flex align-items-center justify-content-center text-white shadow-inner">
+                        <i class="bi bi-water display-6 animate-float-icon"></i>
+                    </div>
+                    <div class="water-ring-orbit position-absolute top-50 start-50 translate-middle rounded-circle border border-primary border-opacity-50"></div>
+                    <div class="water-ring-orbit-outer position-absolute top-50 start-50 translate-middle rounded-circle border border-info border-opacity-25"></div>
+                </div>
+
+                <h2 class="fw-black mb-3 tracking-tight @(UiState.IsDarkMode ? "text-white" : "text-dark")">@_headingText</h2>
+                <p class="lead text-secondary mx-auto fs-5 opacity-90 mb-0" style="max-width: 780px; line-height: 1.6;">
+                    @_descriptionText
+                </p>
+
+                <hr class="w-25 mx-auto my-4 opacity-25" />
+
+                <div class="row g-4 mt-2 justify-content-center text-start">
+                    <div class="col-12 col-sm-6">
+                        <div class="p-4 rounded-4 border h-100 transition-all hover-card @(UiState.IsDarkMode ? "bg-dark border-secondary text-white" : "bg-light text-dark border-opacity-10")">
+                            <div class="fs-2 text-primary mb-3"><i class="bi bi-cpu-fill"></i></div>
+                            <h5 class="fw-bold mb-2">@_cardTitle1</h5>
+                            <p class="small text-secondary mb-0" style="line-height: 1.5;">@_cardDesc1</p>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-sm-6">
+                        <div class="p-4 rounded-4 border h-100 transition-all hover-card @(UiState.IsDarkMode ? "bg-dark border-secondary text-white" : "bg-light text-dark border-opacity-10")">
+                            <div class="fs-2 text-success mb-3"><i class="bi bi-cash-coin"></i></div>
+                            <h5 class="fw-bold mb-2">@_cardTitle2</h5>
+                            <p class="small text-secondary mb-0" style="line-height: 1.5;">@_cardDesc2</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .fw-black {
+        font-weight: 900 !important;
+    }
+
+    .tracking-tight {
+        letter-spacing: -0.8px;
+    }
+
+    .transition-all {
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Custom Code-Based Water Graphic Component Styles */
+    .water-abstract-asset {
+        width: 150px;
+        height: 150px;
+    }
+
+    .water-core-wave {
+        width: 86px;
+        height: 86px;
+        position: absolute;
+        top: 32px;
+        left: 32px;
+        background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%) !important;
+        z-index: 2;
+    }
+
+    .water-ring-orbit {
+        width: 114px;
+        height: 114px;
+        z-index: 1;
+        animation: orbit-rotate 6s linear infinite;
+    }
+
+    .water-ring-orbit-outer {
+        width: 146px;
+        height: 146px;
+        z-index: 0;
+        animation: orbit-rotate-reverse 10s linear infinite;
+    }
+
+    /* Graphic Micro Animations Setup */
+    .animate-float-icon {
+        display: inline-block;
+        animation: floating 3s ease-in-out infinite;
+    }
+
+    @@keyframes floating {
+        0%, 100% {
+            transform: translateY(0);
+        }
+
+        50% {
+            transform: translateY(-4px);
+        }
+    }
+
+    @@keyframes orbit-rotate {
+        from {
+            transform: translate(-50%, -50%) rotate(0deg);
+            border-style: dashed;
+        }
+
+        to {
+            transform: translate(-50%, -50%) rotate(360deg);
+            border-style: dashed;
+        }
+    }
+
+    @@keyframes orbit-rotate-reverse {
+        from {
+            transform: translate(-50%, -50%) rotate(360deg);
+            border-style: dotted;
+        }
+
+        to {
+            transform: translate(-50%, -50%) rotate(0deg);
+            border-style: dotted;
+        }
+    }
+
+    .hover-card {
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+
+        .hover-card:hover {
+            transform: translateY(-2px);
+            border-color: #0d6efd !important;
+            box-shadow: 0 0.5rem 1rem rgba(13, 110, 253, 0.05) !important;
+        }
+</style>
+
+@code {
+    private string _headingText = "About HydroPredict Infrastructure";
+    private string _descriptionText = "HydroPredict is an advanced, tech-driven utility system built to streamline localized water management operations in Kharian, Punjab. We provide deep analytics, automated tariff generation, and immediate logistics vehicle allocation schemas.";
+
+    private string _cardTitle1 = "Predictive Allocation";
+    private string _cardDesc1 = "Utilizes modern system parameters to calculate exact water consumption targets efficiently.";
+
+    private string _cardTitle2 = "Automated Billing";
+    private string _cardDesc2 = "Direct relational billing matrix ledger logs ensure transparent dynamic financial flows.";
+
+    private Func<Task>? _stateHandler;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _stateHandler = async () =>
+        {
+            await UpdateUiTextAsync();
+            StateHasChanged();
+        };
+
+        UiState.OnChange += () => { _ = _stateHandler.Invoke(); };
+        await UpdateUiTextAsync();
+    }
+
+    private async Task UpdateUiTextAsync()
+    {
+        _headingText = await UiState.TranslateAsync("About HydroPredict Infrastructure");
+        _descriptionText = await UiState.TranslateAsync("HydroPredict is an advanced, tech-driven utility system built to streamline localized water management operations in Kharian, Punjab. We provide deep analytics, automated tariff generation, and immediate logistics vehicle allocation schemas.");
+
+        _cardTitle1 = await UiState.TranslateAsync("Predictive Allocation");
+        _cardDesc1 = await UiState.TranslateAsync("Utilizes modern system parameters to calculate exact water consumption targets efficiently.");
+
+        _cardTitle2 = await UiState.TranslateAsync("Automated Billing");
+        _cardDesc2 = await UiState.TranslateAsync("Direct relational billing matrix ledger logs ensure transparent dynamic financial flows.");
+    }
+
+    public void Dispose()
+    {
+        if (_stateHandler != null)
+        {
+            UiState.OnChange -= () => { _ = _stateHandler.Invoke(); };
+        }
+    }
+}

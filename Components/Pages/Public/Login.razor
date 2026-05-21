@@ -1,0 +1,235 @@
+﻿@page "/login"
+@using HydroPredict.Models
+@using HydroPredict.Services.Interfaces
+@rendermode InteractiveServer
+@inject IAuthService AuthService
+@inject NavigationManager NavManager
+@inject HydroPredict.Services.Implementations.UiStateService UiState
+@implements IDisposable
+
+<div class="page-wrapper d-flex justify-content-center align-items-center min-vh-100 py-5 position-relative overflow-hidden @(UiState.IsDarkMode ? "bg-dark text-white" : "bg-light text-dark")">
+
+    <div class="abstract-bg-overlay position-absolute top-0 start-0 w-100 h-100"
+         style="background-image: linear-gradient(to bottom, @(UiState.IsDarkMode ? "rgba(33,37,41,0.88)" : "rgba(248,249,250,0.85)"), @(UiState.IsDarkMode ? "rgba(33,37,41,0.92)" : "rgba(248,249,250,0.90)")), url('https://images.unsplash.com/photo-1541888946425-d81bb19240f5?auto=format&fit=crop&w=1920&q=80');
+        background-size: cover;
+        background-position: center;
+        filter: contrast(1.05);
+        z-index: 0;">
+    </div>
+
+    <div class="container position-relative z-1">
+        <div class="row justify-content-center w-100 m-0">
+            <div class="col-12 col-sm-10 col-md-8 col-lg-5 card border-0 p-4 p-sm-5 shadow-lg rounded-4 transition-all @(UiState.IsDarkMode ? "bg-secondary text-white border-secondary" : "bg-white text-dark")" style="backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid @(UiState.IsDarkMode ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.05)") !important;">
+
+                <div class="text-center mb-4">
+                    <div class="mb-3 d-inline-block p-3 bg-primary-subtle text-primary rounded-circle shadow-sm hover-scale-icon">
+                        <i class="bi bi-shield-lock-fill display-5"></i>
+                    </div>
+                    <h3 class="fw-black m-0 tracking-tight @(UiState.IsDarkMode ? "text-white" : "text-dark")">@_gatewayTitle</h3>
+                    <p class="text-secondary small mt-1.5 px-2">@_gatewaySubTitle</p>
+                </div>
+
+                <div class="p-1 rounded-3 mb-4 d-flex gap-1 @(UiState.IsDarkMode ? "bg-dark" : "bg-light")">
+                    <button type="button" @onclick='() => SetSelectedRole("Consumer")' class="btn btn-sm flex-grow-1 fw-bold rounded-2 py-2 transition-all @(SelectedRole == "Consumer" ? "btn-primary shadow-sm" : "text-secondary bg-transparent")">
+                        @_tabConsumer
+                    </button>
+                    <button type="button" @onclick='() => SetSelectedRole("Admin")' class="btn btn-sm flex-grow-1 fw-bold rounded-2 py-2 transition-all @(SelectedRole == "Admin" ? "btn-primary shadow-sm" : "text-secondary bg-transparent")">
+                        @_tabAdmin
+                    </button>
+                    <button type="button" @onclick='() => SetSelectedRole("Driver")' class="btn btn-sm flex-grow-1 fw-bold rounded-2 py-2 transition-all @(SelectedRole == "Driver" ? "btn-primary shadow-sm" : "text-secondary bg-transparent")">
+                        @_tabDriver
+                    </button>
+                </div>
+
+                @if (!string.IsNullOrEmpty(_errText))
+                {
+                    <div class="alert alert-danger py-2 px-3 small border-0 mb-3 rounded-3 animate-shake d-flex align-items-center gap-2" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill"></i> @_errText
+                    </div>
+                }
+
+                <form @onsubmit="HandleLogin" @onsubmit:preventDefault>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-secondary text-opacity-75">@UiState.T("email")</label>
+                        <div class="input-group input-custom-focus">
+                            <span class="input-group-text bg-opacity-10 border-end-0 text-muted @(UiState.IsDarkMode ? "bg-dark border-secondary" : "bg-light")"><i class="bi bi-envelope-at-fill"></i></span>
+                            <input @bind="_email" class="form-control border-start-0 @(UiState.IsDarkMode ? "bg-dark text-white border-secondary" : "bg-light text-dark")" type="email" placeholder="name@hydropredict.com" required />
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-secondary text-opacity-75">@UiState.T("password")</label>
+                        <div class="input-group input-custom-focus">
+                            <span class="input-group-text bg-opacity-10 border-end-0 text-muted @(UiState.IsDarkMode ? "bg-dark border-secondary" : "bg-light")"><i class="bi bi-key-fill"></i></span>
+                            <input @bind="_password" class="form-control border-start-0 @(UiState.IsDarkMode ? "bg-dark text-white border-secondary" : "bg-light text-dark")" type="password" placeholder="••••••••" required />
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold shadow mb-3 rounded-3 py-2.5 btn-gradient-submit" disabled="@_isProcessing">
+                        @if (_isProcessing)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        }
+                        else
+                        {
+                            <i class="bi bi-box-arrow-in-right me-2"></i>
+                        }
+                        @_btnText
+                    </button>
+
+                    <div class="text-center mt-3 small">
+                        <span class="text-muted">@_newUserText</span>
+                        <a href="/register" class="text-primary text-decoration-none fw-bold ms-1 hover-underline">@UiState.T("register")</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .fw-black {
+        font-weight: 900 !important;
+    }
+
+    .tracking-tight {
+        letter-spacing: -0.5px;
+    }
+
+    .transition-all {
+        transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .input-custom-focus:focus-within {
+        transform: translateY(-1px);
+    }
+
+    .input-custom-focus .form-control:focus {
+        box-shadow: none !important;
+        border-color: #0d6efd !important;
+    }
+
+    .btn-gradient-submit {
+        background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
+        border: none !important;
+    }
+
+        .btn-gradient-submit:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 0.5rem 1.25rem rgba(13, 110, 253, 0.25) !important;
+        }
+
+    .hover-scale-icon {
+        transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .card:hover .hover-scale-icon {
+        transform: scale(1.06) rotate(-3deg);
+    }
+
+    .hover-underline:hover {
+        text-decoration: underline !important;
+    }
+
+    .animate-shake {
+        animation: shake 0.35s ease-in-out;
+    }
+
+    @@keyframes shake {
+        0%, 100% {
+            transform: translateX(0);
+        }
+
+        25% {
+            transform: translateX(-4px);
+        }
+
+        75% {
+            transform: translateX(4px);
+        }
+    }
+</style>
+
+@code {
+    private string _email = string.Empty;
+    private string _password = string.Empty;
+    private string SelectedRole { get; set; } = "Consumer";
+
+    private string _gatewayTitle = "HydroPredict Gateway";
+    private string _gatewaySubTitle = "Select account channel to gain access permissions.";
+    private string _tabConsumer = "Customer Profile";
+    private string _tabAdmin = "Admin";
+    private string _tabDriver = "Driver";
+    private string _btnText = "Sign In (Consumer)";
+    private string _newUserText = "New here?";
+
+    private string _errText = string.Empty;
+    private bool _isProcessing = false;
+
+    private Func<Task>? _stateHandler;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _stateHandler = async () =>
+        {
+            await UpdateUiTextAsync();
+            StateHasChanged();
+        };
+
+        UiState.OnChange += () => { _ = _stateHandler.Invoke(); };
+        await UpdateUiTextAsync();
+    }
+
+    private void SetSelectedRole(string role)
+    {
+        SelectedRole = role;
+        _ = UpdateUiTextAsync();
+    }
+
+    private async Task UpdateUiTextAsync()
+    {
+        _gatewayTitle = await UiState.TranslateAsync("HydroPredict Gateway");
+        _gatewaySubTitle = await UiState.TranslateAsync("Select account channel to gain access permissions.");
+        _tabConsumer = await UiState.TranslateAsync("Customer Profile");
+        _tabAdmin = await UiState.TranslateAsync("Admin");
+        _tabDriver = await UiState.TranslateAsync("Driver");
+        _newUserText = await UiState.TranslateAsync("New here?");
+
+        string baseBtnText = $"Sign In ({SelectedRole})";
+        _btnText = await UiState.TranslateAsync(baseBtnText);
+
+        StateHasChanged();
+    }
+
+    private async Task HandleLogin()
+    {
+        _isProcessing = true;
+        _errText = string.Empty;
+
+        // FIXED CS0029: Evaluates login via the original custom tuple pattern
+        var loginResult = await AuthService.LoginAsync(_email.Trim().ToLower(), _password);
+        if (loginResult.Success)
+        {
+            switch (SelectedRole)
+            {
+                case "Admin": NavManager.NavigateTo("/admin/dashboard"); break;
+                case "Driver": NavManager.NavigateTo("/driver/portal"); break;
+                default: NavManager.NavigateTo("/consumer/dashboard"); break;
+            }
+        }
+        else
+        {
+            _errText = loginResult.ErrorMessage;
+        }
+
+        _isProcessing = false;
+    }
+
+    public void Dispose()
+    {
+        if (_stateHandler != null)
+        {
+            UiState.OnChange -= () => { _ = _stateHandler.Invoke(); };
+        }
+    }
+}

@@ -1,0 +1,270 @@
+﻿@page "/"
+@inject HydroPredict.Services.Implementations.UiStateService UiState
+@implements IDisposable
+
+<div class="animate-fade-in pb-5 @(UiState.IsDarkMode ? "bg-dark text-white" : "bg-light text-dark")">
+
+    <section class="container py-5 my-3">
+        <div class="row align-items-center g-5">
+
+            <div class="col-12 col-lg-6 text-center text-lg-start">
+                <div class="d-inline-flex align-items-center gap-2 px-3 py-1.5 rounded-pill mb-3 bg-primary-subtle text-primary border border-primary-subtle small fw-bold tracking-wide text-uppercase" style="font-size: 11px;">
+                    <i class="bi bi-gear-fill text-spin"></i> @_badgeText
+                </div>
+
+                <h1 class="display-4 fw-black mb-3 lh-sm @(UiState.IsDarkMode ? "text-white" : "text-dark")" style="letter-spacing: -1px;">
+                    @_headingPart1 <br />
+                    <span class="text-gradient-primary">@_headingPart2</span>
+                </h1>
+
+                <p class="lead mb-4 opacity-90 fs-5 text-secondary" style="line-height: 1.6; max-width: 540px;">
+                    @_descriptionText
+                </p>
+
+                <div class="d-flex flex-column flex-sm-row justify-content-center justify-content-lg-start gap-3">
+                    <a href="/register" class="btn btn-primary btn-lg fw-bold rounded-3 px-4 py-2.5 shadow border-0 hover-lift">
+                        <i class="bi bi-rocket-takeoff-fill me-2"></i>@_btnGetStarted
+                    </a>
+                    <a href="/login" class="btn btn-lg fw-bold rounded-3 px-4 py-2.5 border hover-lift @(UiState.IsDarkMode ? "btn-outline-light bg-transparent text-white" : "btn-outline-secondary bg-white text-dark")">
+                        <i class="bi bi-shield-lock-fill text-primary me-2"></i>@_btnAccessPortal
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-12 col-lg-6">
+                <div class="position-relative p-2 rounded-4 border shadow-lg overflow-hidden img-hover-zoom @(UiState.IsDarkMode ? "bg-secondary border-secondary" : "bg-white border-light")">
+                    <img src="https://thecapitaltankers.com/wp-content/uploads/2025/07/Salt-Water-Tanker-Supply.webp"
+                         alt="Premium Salt Water Tanker Supply Infrastructure Fleet"
+                         class="img-fluid rounded-3 w-100 object-fit-cover"
+                         style="max-height: 400px; min-height: 380px; filter: contrast(1.02) brightness(0.97);" />
+
+                    <div class="position-absolute bottom-0 start-0 m-4 p-3 rounded-4 shadow-lg border d-flex align-items-center gap-3 animate-bounce @(UiState.IsDarkMode ? "bg-dark border-secondary text-white" : "bg-white border-light text-dark")">
+                        <div class="p-2 bg-success-subtle text-success rounded-3"><i class="bi bi-activity fs-4"></i></div>
+                        <div>
+                            <span class="d-block text-muted small fw-semibold">@_liveStatusLabel</span>
+                            <span class="fw-bold d-flex align-items-center gap-1.5" style="font-size: 14px;">
+                                <span class="pulse-indicator bg-success"></span> @_liveStatusValue
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <section class="container my-4">
+        <div class="row g-4 text-center">
+            <div class="col-6 col-md-3">
+                <div class="p-3 rounded-4 border shadow-sm @(UiState.IsDarkMode ? "bg-secondary border-0 text-white" : "bg-white border-light text-dark")">
+                    <h3 class="fw-black text-primary m-0">15K+</h3>
+                    <p class="small text-muted m-0 fw-semibold">@_metric1</p>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="p-3 rounded-4 border shadow-sm @(UiState.IsDarkMode ? "bg-secondary border-0 text-white" : "bg-white border-light text-dark")">
+                    <h3 class="fw-black m-0 @(UiState.IsDarkMode ? "text-light" : "text-dark")">2.4 Min</h3>
+                    <p class="small text-muted m-0 fw-semibold">@_metric2</p>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="p-3 rounded-4 border shadow-sm @(UiState.IsDarkMode ? "bg-secondary border-0 text-white" : "bg-white border-light text-dark")">
+                    <h3 class="fw-black text-success m-0">99.8%</h3>
+                    <p class="small text-muted m-0 fw-semibold">@_metric3</p>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="p-3 rounded-4 border shadow-sm @(UiState.IsDarkMode ? "bg-secondary border-0 text-white" : "bg-white border-light text-dark")">
+                    <h3 class="fw-black text-info m-0">SQLite</h3>
+                    <p class="small text-muted m-0 fw-semibold">@_metric4</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="container py-5">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold mb-2 @(UiState.IsDarkMode ? "text-white" : "text-dark")">@_suiteTitle</h2>
+            <p class="text-muted small mx-auto" style="max-width: 480px;">@_suiteSubTitle</p>
+        </div>
+
+        <div class="row g-4 justify-content-center">
+            <div class="col-12 col-md-5 col-lg-4">
+                <div class="card border-0 p-4 shadow-sm rounded-4 h-100 text-center hover-card @(UiState.IsDarkMode ? "bg-secondary text-white" : "bg-white text-dark")">
+                    <div class="p-3 bg-primary-subtle text-primary rounded-3 d-inline-block mx-auto mb-3">
+                        <i class="bi bi-bar-chart-line-fill fs-3"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">@_cardTitle1</h5>
+                    <p class="small text-muted mb-0">@_cardDesc1</p>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-5 col-lg-4">
+                <div class="card border-0 p-4 shadow-sm rounded-4 h-100 text-center hover-card @(UiState.IsDarkMode ? "bg-secondary text-white" : "bg-white text-dark")">
+                    <div class="p-3 bg-success-subtle text-success rounded-3 d-inline-block mx-auto mb-3">
+                        <i class="bi bi-calendar-check-fill fs-3"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">@_cardTitle2</h5>
+                    <p class="small text-muted mb-0">@_cardDesc2</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</div>
+
+<style>
+    .fw-black {
+        font-weight: 900 !important;
+    }
+
+    .text-gradient-primary {
+        background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .hover-lift {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+        .hover-lift:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15) !important;
+        }
+
+    .hover-card {
+        transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s ease;
+    }
+
+        .hover-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 1rem 2rem rgba(13, 110, 253, 0.08) !important;
+        }
+
+    .img-hover-zoom img {
+        transition: transform 0.5s ease;
+    }
+
+    .img-hover-zoom:hover img {
+        transform: scale(1.02);
+    }
+
+    .pulse-indicator {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        animation: pulse-ring 1.5s infinite ease-in-out;
+    }
+
+    @@keyframes pulse-ring {
+        0% {
+            transform: scale(0.9);
+            opacity: 1;
+        }
+
+        50% {
+            transform: scale(1.2);
+            opacity: 0.7;
+        }
+
+        100% {
+            transform: scale(0.9);
+            opacity: 1;
+        }
+    }
+
+    .animate-fade-in {
+        animation: fadeIn 0.4s ease-out forwards;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(4px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+@code {
+    private string _badgeText = "Smart Water Infrastructure";
+    private string _headingPart1 = "Smart Water Demand";
+    private string _headingPart2 = "Simplified & Tracked";
+    private string _descriptionText = "Onboard seamlessly, estimate seasonal consumption requirements, and secure on-demand water tankers directly to your doorstep with guaranteed relational logistics validation schemas.";
+
+    private string _btnGetStarted = "Get Started Now";
+    private string _btnAccessPortal = "Access Portal Center";
+
+    private string _liveStatusLabel = "Live System Status";
+    private string _liveStatusValue = "Operational Hub";
+
+    private string _metric1 = "Liters Delivered Today";
+    private string _metric2 = "Avg Response Metric";
+    private string _metric3 = "Dispatch Success Rate";
+    private string _metric4 = "Relational Data Engine";
+
+    private string _suiteTitle = "Engineered Solution Suite";
+    private string _suiteSubTitle = "Everything you need to automate logistics tracking grids and monitor consumer loads seamlessly.";
+
+    private string _cardTitle1 = "Demand Analytics";
+    private string _cardDesc1 = "Predictive logistics engine modeling and optimizing water supply pipelines based on historical consumption nodes.";
+
+    private string _cardTitle2 = "Instant Booking";
+    private string _cardDesc2 = "Secure distributed supply tanker units with full tracking automated tariff billing calculations instantly.";
+
+    private Func<Task>? _stateHandler;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _stateHandler = async () =>
+        {
+            await UpdateUiTextAsync();
+            StateHasChanged();
+        };
+
+        UiState.OnChange += () => { _ = _stateHandler.Invoke(); };
+        await UpdateUiTextAsync();
+    }
+
+    private async Task UpdateUiTextAsync()
+    {
+        _badgeText = await UiState.TranslateAsync("Smart Water Infrastructure");
+        _headingPart1 = await UiState.TranslateAsync("Smart Water Demand");
+        _headingPart2 = await UiState.TranslateAsync("Simplified & Tracked");
+        _descriptionText = await UiState.TranslateAsync("Onboard seamlessly, estimate seasonal consumption requirements, and secure on-demand water tankers directly to your doorstep with guaranteed relational logistics validation schemas.");
+
+        _btnGetStarted = await UiState.TranslateAsync("Get Started Now");
+        _btnAccessPortal = await UiState.TranslateAsync("Access Portal Center");
+
+        _liveStatusLabel = await UiState.TranslateAsync("Live System Status");
+        _liveStatusValue = await UiState.TranslateAsync("Operational Hub");
+
+        _metric1 = await UiState.TranslateAsync("Liters Delivered Today");
+        _metric2 = await UiState.TranslateAsync("Avg Response Metric");
+        _metric3 = await UiState.TranslateAsync("Dispatch Success Rate");
+        _metric4 = await UiState.TranslateAsync("Relational Data Engine");
+
+        _suiteTitle = await UiState.TranslateAsync("Engineered Solution Suite");
+        _suiteSubTitle = await UiState.TranslateAsync("Everything you need to automate logistics tracking grids and monitor consumer loads seamlessly.");
+
+        _cardTitle1 = await UiState.TranslateAsync("Demand Analytics");
+        _cardDesc1 = await UiState.TranslateAsync("Predictive logistics engine modeling and optimizing water supply pipelines based on historical consumption nodes.");
+
+        _cardTitle2 = await UiState.TranslateAsync("Instant Booking");
+        _cardDesc2 = await UiState.TranslateAsync("Secure distributed supply tanker units with full tracking automated tariff billing calculations instantly.");
+    }
+
+    public void Dispose()
+    {
+        if (_stateHandler != null)
+        {
+            UiState.OnChange -= () => { _ = _stateHandler.Invoke(); };
+        }
+    }
+}

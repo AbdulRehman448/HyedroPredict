@@ -1,0 +1,212 @@
+﻿@page "/admin/dashboard."
+@using HydroPredict.Models
+@using HydroPredict.Services.Interfaces
+@rendermode InteractiveServer
+@inject IDashboardService DashboardService
+@inject NavigationManager NavManager
+
+<div class="min-vh-100 bg-light py-4">
+    <div class="container">
+
+        <div class="d-flex align-items-center justify-content-between mb-4 p-4 bg-white rounded-4 shadow-sm">
+            <div class="d-flex align-items-center gap-3">
+                <img src="https://cdn-icons-png.flaticon.com/512/149/149071.png" alt="Portal Profile" class="rounded-circle border bg-light p-1" style="width: 56px; height: 56px;" />
+                <div>
+                    <h4 class="fw-bold text-dark mb-0">@(_currentTab == "admin" ? "Logistics & Operations Control Center" : "Driver Field Delivery Panel")</h4>
+                    <p class="text-muted small mb-0">Managing local SQLite relational logistics distribution infrastructures.</p>
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-secondary btn-sm rounded-3 fw-semibold text-dark bg-white px-3" @onclick="LoadDashboardData">
+                    <i class="bi bi-arrow-clockwise me-1"></i> Refresh Board
+                </button>
+                <a href="/login" class="btn btn-danger btn-sm rounded-3 fw-semibold px-3">
+                    <i class="bi bi-box-arrow-left me-1"></i> Logout
+                </a>
+            </div>
+        </div>
+
+        <div class="bg-white p-2 rounded-3 shadow-sm d-flex gap-2 mb-4">
+            <button class="btn flex-fill fw-semibold rounded-3 py-2.5 @(_currentTab == "admin" ? "btn-primary shadow-sm" : "btn-light text-secondary")" @onclick='() => SwitchTab("admin")'>
+                <i class="bi bi-shield-check me-2"></i>Admin Dispatch View
+            </button>
+            <button class="btn flex-fill fw-semibold rounded-3 py-2.5 @(_currentTab == "driver" ? "btn-primary shadow-sm" : "btn-light text-secondary")" @onclick='() => SwitchTab("driver")'>
+                <i class="bi bi-truck me-2"></i>Driver Manifest View
+            </button>
+        </div>
+
+        @if (_currentTab == "admin")
+        {
+            <div class="card border-0 p-4 shadow-sm rounded-4 bg-white">
+                <h5 class="fw-bold text-dark mb-3"><i class="bi bi-list-task text-primary me-2"></i>Global Dispatch Master Board</h5>
+                <div class="table-responsive">
+                    <table class="table align-middle border-0 mb-0">
+                        <thead class="table-light text-secondary small">
+                            <tr>
+                                <th class="border-0">Order ID</th>
+                                <th class="border-0">Volume</th>
+                                <th class="border-0">Address</th>
+                                <th class="border-0">Driver Assignment</th>
+                                <th class="border-0 text-end">Current Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="small">
+                            @foreach (var order in _allBookings)
+                            {
+                                <tr>
+                                    <td class="fw-bold text-primary">#HP-@order.Id</td>
+                                    <td>@order.TargetVolumeLiters.ToString("N0") Liters</td>
+                                    <td class="text-secondary text-truncate" style="max-width: 200px;">@order.DeliveryAddress</td>
+                                    <td>
+                                        @if (order.AssignedDriverId == null)
+                                        {
+                                            <select class="form-select form-select-sm bg-warning-subtle border-0 fw-semibold text-warning border-start p-2 rounded-3" style="max-width: 180px;" @onchange="(e) => AssignDriver(order.Id, e)">
+                                                <option value="">Unassigned</option>
+                                                @foreach (var driver in _availableDrivers)
+                                                {
+                                                    <option value="@driver.Id">@driver.AccountName</option>
+                                                }
+                                            </select>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-dark fw-medium">
+                                                <i class="bi bi-person-badge text-muted me-1"></i>
+                                                @(_availableDrivers.FirstOrDefault(d => d.Id == order.AssignedDriverId)?.AccountName ?? "Assigned Driver")
+                                            </span>
+                                        }
+                                    </td>
+                                    <td class="text-end">
+                                        <span class="badge @GetStatusBadgeClass(order.ManifestStatus) px-2.5 py-1.5 rounded-3 fw-semibold">
+                                            @order.ManifestStatus.ToString()
+                                        </span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="card border-0 p-4 shadow-sm rounded-4 bg-white">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="p-2.5 bg-info-subtle text-info rounded-3"><i class="bi bi-truck fs-4"></i></div>
+                    <div>
+                        <h5 class="fw-bold text-dark m-0">Primary Driver Manifest Logs</h5>
+                        <p class="text-muted small m-0">Showing jobs assigned directly to your tanker vehicle.</p>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table align-middle border-0 mb-0">
+                        <thead class="table-light text-secondary small">
+                            <tr>
+                                <th class="border-0">Manifest ID</th>
+                                <th class="border-0">Volume</th>
+                                <th class="border-0">Destination Address</th>
+                                <th class="border-0">Target Window</th>
+                                <th class="border-0 text-end">Action Panel</th>
+                            </tr>
+                        </thead>
+                        <tbody class="small">
+                            @foreach (var job in _allBookings.Where(b => b.AssignedDriverId == SimulatedDriverId))
+                            {
+                                <tr>
+                                    <td class="fw-bold text-primary">#HP-@job.Id</td>
+                                    <td>@job.TargetVolumeLiters.ToString("N0") Liters</td>
+                                    <td class="text-secondary">@job.DeliveryAddress</td>
+                                    <td class="text-muted">@job.TargetDeliveryWindow.ToString("yyyy-MM-dd")</td>
+                                    <td class="text-end">
+                                        @if (job.ManifestStatus == BookingStatus.ApprovedAndAssigned)
+                                        {
+                                            <button class="btn btn-sm btn-primary fw-semibold rounded-3 px-3" @onclick="() => UpdateStatus(job.Id, BookingStatus.InTransit)">
+                                                <i class="bi bi-play-fill me-1"></i>Depart Route
+                                            </button>
+                                        }
+                                        else if (job.ManifestStatus == BookingStatus.InTransit)
+                                        {
+                                            <button class="btn btn-sm btn-success fw-semibold rounded-3 px-3" @onclick="() => UpdateStatus(job.Id, BookingStatus.Delivered)">
+                                                <i class="bi bi-check-lg me-1"></i>Mark Delivered
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge @GetStatusBadgeClass(job.ManifestStatus) px-2.5 py-1.5 rounded-3 fw-semibold">
+                                                @job.ManifestStatus.ToString()
+                                            </span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+
+    </div>
+</div>
+
+@code {
+    private string _currentTab = "admin";
+    private List<Booking> _allBookings = new();
+    private List<User> _availableDrivers = new();
+
+    private const int SimulatedDriverId = 2; // Default driver id reference inside SQLite rows
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Parse URL parameters cleanly to detect driver logins instantly
+        var uri = NavManager.ToAbsoluteUri(NavManager.Uri);
+        if (Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query).TryGetValue("view", out var viewValue))
+        {
+            _currentTab = viewValue.ToString();
+        }
+
+        await LoadDashboardData();
+    }
+
+    private async Task LoadDashboardData()
+    {
+        _allBookings = await DashboardService.GetAllBookingsAsync();
+        _availableDrivers = await DashboardService.GetAvailableDriversAsync();
+    }
+
+    private async Task AssignDriver(int bookingId, ChangeEventArgs e)
+    {
+        if (string.IsNullOrEmpty(e.Value?.ToString())) return;
+
+        int driverId = int.Parse(e.Value.ToString()!);
+        var success = await DashboardService.AssignDriverAsync(bookingId, driverId);
+        if (success)
+        {
+            await LoadDashboardData();
+        }
+    }
+
+    private async Task UpdateStatus(int bookingId, BookingStatus newStatus)
+    {
+        var success = await DashboardService.UpdateBookingStatusAsync(bookingId, newStatus);
+        if (success)
+        {
+            await LoadDashboardData();
+        }
+    }
+
+    private void SwitchTab(string tabName)
+    {
+        _currentTab = tabName;
+    }
+
+    private string GetStatusBadgeClass(BookingStatus status) => status switch
+    {
+        BookingStatus.PendingApproval => "bg-warning-subtle text-warning",
+        BookingStatus.ApprovedAndAssigned => "bg-info-subtle text-info",
+        BookingStatus.InTransit => "bg-primary-subtle text-primary",
+        BookingStatus.Delivered => "bg-success-subtle text-success",
+        BookingStatus.Cancelled => "bg-danger-subtle text-danger",
+        _ => "bg-secondary-subtle text-secondary"
+    };
+}

@@ -1,0 +1,282 @@
+﻿@page "/consumer/dashboard"
+@using HydroPredict.Models
+@using HydroPredict.Services.Interfaces
+@rendermode InteractiveServer
+@inject IBookingService BookingService
+@inject HydroPredict.Data.ApplicationDbContext DbContext
+@inject HydroPredict.Services.Implementations.UiStateService UiState
+@implements IDisposable
+
+<div class="dashboard-wrapper min-vh-100 py-5 position-relative overflow-hidden @(UiState.IsDarkMode ? "bg-dark text-white" : "bg-light text-dark")">
+
+    <div class="abstract-bg-overlay position-absolute top-0 start-0 w-100 h-100 opacity-5 pointer-events-none"
+         style="background-image: radial-gradient(#0d6efd 1px, transparent 1px); background-size: 24px 24px; z-index: 0;">
+    </div>
+
+    <div class="container position-relative z-1">
+
+        <div class="row m-0 mb-4 animate-fade-in">
+            <div class="col-12 card border-0 p-4 shadow-sm rounded-4 d-flex flex-column flex-md-row align-items-center justify-content-between gap-4 @(UiState.IsDarkMode ? "bg-secondary text-white border-0" : "bg-white text-dark")" style="border: 1px solid rgba(0,0,0,0.03) !important; backdrop-filter: blur(12px);">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="position-relative">
+                        <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Profile" class="rounded-circle border border-2 border-primary p-1 bg-light shadow-sm object-fit-contain" style="width: 64px; height: 64px;" />
+                        <span class="position-absolute bottom-0 end-0 bg-success border border-2 border-white rounded-circle p-1.5" title="Active Circuit Online Ready"></span>
+                    </div>
+                    <div>
+                        <h4 class="fw-black m-0 tracking-tight @(UiState.IsDarkMode ? "text-white" : "text-dark")">
+                            @UiState.T("consumer_portal"): <span class="text-gradient-primary">@_customerName</span>
+                        </h4>
+                        <p class="text-secondary small m-0 mt-1">Review demand tracking metrics and book transport logistics infrastructure assets.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4 m-0 animate-fade-in">
+            <div class="col-12 col-lg-4">
+                <div class="card border-0 p-4 shadow-sm rounded-4 h-100 transition-all @(UiState.IsDarkMode ? "bg-secondary text-white border-0" : "bg-white text-dark")" style="border: 1px solid rgba(0,0,0,0.02) !important;">
+
+                    <div class="d-flex align-items-center gap-2 mb-4">
+                        <div class="p-2 bg-primary-subtle text-primary rounded-3"><i class="bi bi-plus-circle-fill fs-5"></i></div>
+                        <h5 class="fw-bold m-0">@UiState.T("request_tanker")</h5>
+                    </div>
+
+                    <form @onsubmit="SubmitNewBooking" @onsubmit:preventDefault>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-secondary text-opacity-75">@UiState.T("volume")</label>
+                            <div class="input-group input-custom-focus">
+                                <span class="input-group-text bg-opacity-10 border-end-0 text-muted @(UiState.IsDarkMode ? "bg-dark border-secondary" : "bg-light")"><i class="bi bi-water"></i></span>
+                                <input type="number" @bind="_volumeLiters" class="form-control border-start-0 @(UiState.IsDarkMode ? "bg-dark text-white border-secondary" : "bg-light text-dark")" min="1000" step="500" required />
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-secondary text-opacity-75">@UiState.T("address")</label>
+                            <div class="input-group input-custom-focus">
+                                <span class="input-group-text bg-opacity-10 border-end-0 text-muted @(UiState.IsDarkMode ? "bg-dark border-secondary" : "bg-light")"><i class="bi bi-geo-alt-fill"></i></span>
+                                <input type="text" @bind="_deliveryAddress" class="form-control border-start-0 @(UiState.IsDarkMode ? "bg-dark text-white border-secondary" : "bg-light text-dark")" placeholder="Kharian City" required />
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold text-secondary text-opacity-75">@UiState.T("date")</label>
+                            <div class="input-group input-custom-focus">
+                                <span class="input-group-text bg-opacity-10 border-end-0 text-muted @(UiState.IsDarkMode ? "bg-dark border-secondary" : "bg-light")"><i class="bi bi-calendar-event"></i></span>
+                                <input type="date" @bind="_deliveryDate" class="form-control border-start-0 @(UiState.IsDarkMode ? "bg-dark text-white border-secondary" : "bg-light text-dark")" required />
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold shadow rounded-3 py-2.5 btn-gradient-submit">
+                            <i class="bi bi-send-check-fill me-2"></i>@UiState.T("submit_order")
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="col-12 col-lg-8">
+                <div class="card border-0 p-4 shadow-sm rounded-4 h-100 @(UiState.IsDarkMode ? "bg-secondary text-white border-0" : "bg-white text-dark")" style="border: 1px solid rgba(0,0,0,0.02) !important;">
+
+                    <div class="d-flex align-items-center gap-2 mb-4">
+                        <div class="p-2 bg-success-subtle text-success rounded-3"><i class="bi bi-clock-history fs-5"></i></div>
+                        <h5 class="fw-bold m-0">@UiState.T("recent_bookings")</h5>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table align-middle border-0 m-0 @(UiState.IsDarkMode ? "table-dark" : "table-white")">
+                            <thead>
+                                <tr class="text-secondary small fw-bold border-bottom @(UiState.IsDarkMode ? "border-secondary" : "")" style="font-size: 11px; letter-spacing: 0.5px;">
+                                    <th class="border-0 pb-3">@UiState.T("manifest_id")</th>
+                                    <th class="border-0 pb-3">@UiState.T("volume")</th>
+                                    <th class="border-0 pb-3">@UiState.T("tariff")</th>
+                                    <th class="border-0 pb-3">@UiState.T("status")</th>
+                                    <th class="border-0 pb-3 text-end">INVOICE</th>
+                                </tr>
+                            </thead>
+                            <tbody class="small text-secondary">
+                                @if (_bookingLedger != null)
+                                {
+                                    @foreach (var b in _bookingLedger)
+                                    {
+                                        <tr class="border-bottom @(UiState.IsDarkMode ? "border-secondary" : "border-light")">
+                                            <td class="fw-bold text-primary py-3">#HP-@b.Id</td>
+                                            <td class="fw-medium">@b.TargetVolumeLiters.ToString("N0") L</td>
+                                            <td class="fw-bold text-dark @(UiState.IsDarkMode ? "text-white" : "text-dark")">Rs. @b.DynamicTariffCalculated.ToString("N2")</td>
+                                            <td>
+                                                <span class="badge rounded-pill px-2.5 py-1 fw-bold bg-light text-primary border" style="font-size: 10px;">
+                                                    @b.ManifestStatus.ToString()
+                                                </span>
+                                            </td>
+                                            <td class="text-end">
+                                                <button type="button" class="btn btn-sm btn-outline-primary border-0 rounded-circle p-1.5" @onclick="() => LaunchInvoiceModal(b)" title="Launch Active Commercial Invoice Popup">
+                                                    <i class="bi bi-receipt fs-5"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@if (_activeInvoice != null)
+{
+    <div class="modal fade show d-block" style="background: rgba(0,0,0,0.55); backdrop-filter: blur(4px);" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 rounded-4 shadow p-4 text-dark animate-pop" style="background: #ffffff;">
+
+                <div class="d-flex justify-content-between border-bottom pb-2 mb-3">
+                    <h5 class="fw-bold m-0 text-dark"><i class="bi bi-file-earmark-text-fill text-primary me-2"></i>HydroPredict Commercial Bill</h5>
+                    <button type="button" class="btn-close" @onclick="CloseInvoiceModal"></button>
+                </div>
+
+                <div class="bg-light p-3 rounded-3 mb-3 small text-secondary">
+                    <div class="d-flex justify-content-between mb-1.5"><span>Invoice No:</span><span class="fw-bold text-dark">#HP-@_activeInvoice.Id</span></div>
+                    <div class="d-flex justify-content-between mb-1.5"><span>Customer:</span><span class="fw-bold text-dark">@_customerName</span></div>
+                    <div class="d-flex justify-content-between"><span>Location Area:</span><span class="fw-bold text-dark text-truncate" style="max-width: 220px;">@_activeInvoice.DeliveryAddress</span></div>
+                </div>
+
+                <div class="border rounded-3 p-3 mb-3 small text-secondary">
+                    <div class="d-flex justify-content-between mb-2 border-bottom pb-1.5"><span>Base Surcharge rate</span><span class="fw-bold text-dark">Rs. 25.00</span></div>
+                    <div class="d-flex justify-content-between mb-2 border-bottom pb-1.5"><span>Fluid Vol (@_activeInvoice.TargetVolumeLiters.ToString("N0") Liters)</span><span class="fw-bold text-dark">Rs. @((_activeInvoice.TargetVolumeLiters * 0.15m).ToString("N2"))</span></div>
+                    <div class="d-flex justify-content-between fw-bold fs-5 text-success mt-2"><span>Total Bill Cost Amount</span><span>Rs. @_activeInvoice.DynamicTariffCalculated.ToString("N2")</span></div>
+                </div>
+
+                <button type="button" class="btn btn-secondary w-100 fw-semibold rounded-3 py-2" @onclick="CloseInvoiceModal">Dismiss Invoice Statement</button>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    .fw-black {
+        font-weight: 900 !important;
+    }
+
+    .tracking-tight {
+        letter-spacing: -0.6px;
+    }
+
+    .transition-all {
+        transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .text-gradient-primary {
+        background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .input-custom-focus:focus-within {
+        transform: translateY(-0.5px);
+    }
+
+    .input-custom-focus .form-control:focus {
+        box-shadow: none !important;
+        border-color: #0d6efd !important;
+        background: transparent !important;
+    }
+
+    .btn-gradient-submit {
+        background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
+        border: none !important;
+    }
+
+        .btn-gradient-submit:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 0.5rem 1rem rgba(13, 110, 253, 0.2) !important;
+        }
+
+    .table th {
+        background: transparent !important;
+    }
+
+    .table td {
+        background: transparent !important;
+    }
+
+    .animate-fade-in {
+        animation: fadeIn 0.35s ease-out forwards;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(4px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .animate-pop {
+        animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.15) forwards;
+    }
+
+    @@keyframes popIn {
+        from {
+            transform: scale(0.95);
+            opacity: 0;
+        }
+
+        to {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+</style>
+
+@code {
+    private List<Booking>? _bookingLedger;
+    private string _customerName = "Consumer Account";
+    private int _volumeLiters = 5000;
+    private string _deliveryAddress = string.Empty;
+    private DateTime _deliveryDate = DateTime.Today.AddDays(1);
+    private Booking? _activeInvoice;
+    private const int SimulatedConsumerId = 3;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // FIX CS0070 EVENT RUNTIME EXCEPTION ASSIGNMENT CONFLICTS
+        UiState.OnChange += SyncDashboardView;
+
+        var localUser = await DbContext.Users.FindAsync(SimulatedConsumerId);
+        if (localUser != null) _customerName = localUser.AccountName;
+        await RefreshLedger();
+    }
+
+    private void SyncDashboardView() => InvokeAsync(StateHasChanged);
+
+    private async Task RefreshLedger() => _bookingLedger = await BookingService.GetUserBookingsAsync(SimulatedConsumerId);
+
+    private async Task SubmitNewBooking()
+    {
+        var newOrder = new Booking
+        {
+            UserId = SimulatedConsumerId,
+            TargetVolumeLiters = _volumeLiters,
+            DynamicTariffCalculated = 25.00m + (_volumeLiters * 0.15m),
+            DeliveryAddress = _deliveryAddress,
+            TargetDeliveryWindow = _deliveryDate,
+            ManifestStatus = BookingStatus.PendingApproval
+        };
+        await BookingService.CreateBookingAsync(newOrder);
+        _deliveryAddress = string.Empty;
+        await RefreshLedger();
+    }
+
+    private void LaunchInvoiceModal(Booking target) => _activeInvoice = target;
+    private void CloseInvoiceModal() => _activeInvoice = null;
+
+    public void Dispose()
+    {
+        UiState.OnChange -= SyncDashboardView;
+    }
+}

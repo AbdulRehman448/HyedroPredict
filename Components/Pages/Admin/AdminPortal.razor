@@ -1,0 +1,113 @@
+﻿@page "/admin/dashboard"
+@using HydroPredict.Models
+@implements IDisposable
+@using HydroPredict.Services.Interfaces
+@rendermode InteractiveServer
+@inject IDashboardService DashboardService
+@inject HydroPredict.Data.ApplicationDbContext DbContext
+@inject HydroPredict.Services.Implementations.UiStateService UiState
+
+<div class="container py-4">
+    <div class="p-4 rounded-4 mb-4 shadow-sm d-flex justify-content-between align-items-center @(UiState.IsDarkMode ? "bg-secondary text-white" : "bg-white text-dark")">
+        <div>
+            <h4 class="fw-bold mb-0">@UiState.T("admin_portal")</h4>
+            <p class="text-muted small mb-0">Authorize bookings, track totals, and manage drivers.</p>
+        </div>
+    </div>
+
+    <div class="card border-0 p-4 shadow-sm rounded-4 @(UiState.IsDarkMode ? "bg-dark text-white" : "bg-white text-dark")">
+        <h5 class="fw-bold mb-3"><i class="bi bi-table me-2"></i>Master Customer Booking Ledger</h5>
+        <div class="table-responsive">
+            <table class="table align-middle border-0">
+                <thead class="table-light small">
+                    <tr>
+                        <th>Order ID</th>
+                        <th>@UiState.T("customer")</th>
+                        <th>@UiState.T("volume")</th>
+                        <th>@UiState.T("tariff")</th>
+                        <th>@UiState.T("driver_assign")</th>
+                        <th class="text-end">@UiState.T("actions")</th>
+                    </tr>
+                </thead>
+                <tbody class="small text-secondary">
+                    @foreach (var o in _allBookings)
+                    {
+                        var name = _userMap.ContainsKey(o.UserId) ? _userMap[o.UserId] : "Loading User...";
+                        <tr>
+                            <td class="fw-bold text-primary">#HP-@o.Id</td>
+                            <td class="fw-medium text-dark">@name</td>
+                            <td>@o.TargetVolumeLiters.ToString("N0") L</td>
+                            <td class="fw-bold text-dark">Rs. @o.DynamicTariffCalculated.ToString("N2")</td>
+                            <td>
+                                <select class="form-select form-select-sm" value="@o.AssignedDriverId" @onchange="(e) => AssignDriver(o.Id, e)">
+                                    <option value="">-- Select Driver --</option>
+                                    @foreach (var d in _availableDrivers)
+                                    {
+                                        <option value="@d.Id">@d.AccountName</option>
+                                    }
+                                </select>
+                            </td>
+                            <td class="text-end">
+                                <div class="d-flex justify-content-end gap-1">
+                                    <button class="btn btn-sm btn-outline-secondary" @onclick="() => ViewInvoice(o, name)"><i class="bi bi-receipt"></i></button>
+                                    @if (o.ManifestStatus == BookingStatus.PendingApproval)
+                                    {
+                                        <button class="btn btn-sm btn-success px-2 py-1" @onclick="() => UpdateState(o.Id, BookingStatus.ApprovedAndAssigned)"><i class="bi bi-check"></i></button>
+                                        <button class="btn btn-sm btn-danger px-2 py-1" @onclick="() => UpdateState(o.Id, BookingStatus.Cancelled)"><i class="bi bi-x"></i></button>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-light text-dark border">@o.ManifestStatus.ToString()</span>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@if (_invoiceTarget != null)
+{
+    <div class="modal fade show d-block" style="background: rgba(0,0,0,0.5);" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content p-4 text-dark border-0 rounded-4 shadow">
+                <h5 class="fw-bold mb-3 border-bottom pb-2">Admin Bill Inspector View</h5>
+                <p class="small mb-1">Customer Profile: <strong>@_targetCustomerName</strong></p>
+                <p class="small mb-1">Volume Statement: <strong>@_invoiceTarget.TargetVolumeLiters Liters</strong></p>
+                <p class="fs-4 fw-bold text-primary border-top pt-2">Total Invoice Bill: Rs. @_invoiceTarget.DynamicTariffCalculated.ToString("N2")</p>
+                <button type="button" class="btn btn-dark w-100 mt-2 rounded-3" @onclick="CloseInvoice">Dismiss Inspector</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<Booking> _allBookings = new();
+    private List<User> _availableDrivers = new();
+    private Dictionary<int, string> _userMap = new();
+    private Booking? _invoiceTarget;
+    private string _targetCustomerName = string.Empty;
+
+    protected override async Task OnInitializedAsync() { UiState.OnChange += StateHasChanged; await LoadData(); }
+    private async Task LoadData()
+    {
+        _allBookings = await DashboardService.GetAllBookingsAsync();
+        _availableDrivers = await DashboardService.GetAvailableDriversAsync();
+        foreach (var b in _allBookings)
+        {
+            if (!_userMap.ContainsKey(b.UserId))
+            {
+                var u = await DbContext.Users.FindAsync(b.UserId);
+                if (u != null) _userMap[b.UserId] = u.AccountName;
+            }
+        }
+    }
+    private async Task UpdateState(int bId, BookingStatus s) { await DashboardService.UpdateBookingStatusAsync(bId, s); await LoadData(); }
+    private async Task AssignDriver(int bId, ChangeEventArgs e) { if (!string.IsNullOrEmpty(e.Value?.ToString())) { await DashboardService.AssignDriverAsync(bId, int.Parse(e.Value.ToString()!)); await LoadData(); } }
+    private void ViewInvoice(Booking b, string customer) { _invoiceTarget = b; _targetCustomerName = customer; }
+    private void CloseInvoice() => _invoiceTarget = null;
+    public void Dispose() => UiState.OnChange -= StateHasChanged;
+}
