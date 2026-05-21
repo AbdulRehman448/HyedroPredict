@@ -19,3 +19,4 @@ namespace HydroPredict.Models
         public DateTime RecordCreated { get; set; } = DateTime.UtcNow;
     }
 }
+
